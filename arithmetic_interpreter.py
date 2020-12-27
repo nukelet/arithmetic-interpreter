@@ -200,6 +200,10 @@ def main():
     while True:
         text = input()
 
+        # for empty expressions
+        if not text:
+            continue
+
         if text.lower() == 'exit':
             break
 
