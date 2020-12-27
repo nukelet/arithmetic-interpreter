@@ -1,0 +1,9 @@
+Error parsing expression: 2 [@] 1
+Error parsing expression: 1 [1]
+Error parsing expression: [+] 3
+Traceback (most recent call last):
+  File "/mnt/storage/DATA/projects/interpreter/arithmetic_interpreter.py", line 217, in <module>
+    main()
+  File "/mnt/storage/DATA/projects/interpreter/arithmetic_interpreter.py", line 201, in main
+    text = input()
+EOFError: EOF when reading a line

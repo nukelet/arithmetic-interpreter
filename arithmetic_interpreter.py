@@ -1,3 +1,5 @@
+import sys # sys.stderr
+
 INTEGER = 'INTEGER'
 PLUS, MINUS, TIMES, DIVIDE = 'PLUS', 'MINUS', 'TIMES', 'DIVIDE' 
 EOF = 'EOF'
@@ -126,57 +128,90 @@ class Interpreter:
         self.tokens = self.lexer.get_tokens()
         self.pos = 0
         
-        if len(self.tokens) > 0:
-            self.current_token = self.tokens[0]
-        
-        else:
-            self.current_token = None
+        # guaranteed to work: the Lexer always returns
+        # at least an EOF token
+        self.current_token = self.tokens[0]
 
-    def error(self):
-        raise Exception("Error parsing expression!")
-    
+    def error(self, err_token):
+        err = ""
+        for token in self.tokens:
+            if token.type == EOF:
+                continue
+
+            if token != err_token:
+                err += f"{str(token.value)} "
+
+            else:
+                err += f"[{str(token.value)}] "
+
+        raise Exception(f"Error parsing expression: {err.strip()}")
+
     def eat(self, type):
         if self.current_token.type == type:
+            eaten = self.current_token
             self.pos += 1
             self.current_token = self.tokens[self.pos]
+            return eaten
         else:
-            self.error()
+            self.error(self.current_token)
 
-    def term(self):
-        token = self.current_token
-        self.eat(INTEGER)
-        return token
 
     def evaluate(self, operation, a, b):
         return self.evaluator.evaluate(operation, a, b)
 
-    def expr(self):
-        result = self.term()
+    def factor(self):
+        return self.eat(INTEGER)
 
-        if self.current_token.type != OPERATOR:
-            self.error()
+    # term = factor ((TIMES | DIVIDE) factor)*
+    def term(self):
+        # operators for this level of precedence
+        OPERATORS = ['*', '/']
 
-        while self.current_token.type == OPERATOR:
-            operation = self.current_token
-            self.eat(OPERATOR)
-            next_token = self.current_token
+        result = self.factor()
+        while self.current_token.value in OPERATORS:
+            operation = self.eat(OPERATOR)
+            next_token = self.factor()
 
             result = self.evaluate(operation, result, next_token)
-            self.eat(INTEGER)
 
-        if result is None:
-            return None
+        return result
 
-        else:
-            return result.value
+    # expr = term ((PLUS | MINUS) term)*
+    def expr(self):
+        # operators for this level of precedence
+        OPERATORS = ['+', '-']
+
+        result = self.term()
+        while self.current_token.value in OPERATORS:
+            operation = self.eat(OPERATOR)
+            next_token = self.term()
+
+            result = self.evaluate(operation, result, next_token)
+
+        # if result is None:
+        #     return None
+
+        if self.current_token.type != EOF:
+            self.error(self.current_token)
+
+        return result.value
 
 def main():
     while True:
-        text = input("> ")
+        text = input()
+
+        if text.lower() == 'exit':
+            break
+
         interpreter = Interpreter(text)
 
-        result = interpreter.expr()
-        print(result)
+        try:
+            result = interpreter.expr()
+            print(result)
+
+        except Exception as e:
+            print("")
+            print(e, file=sys.stderr)
 
 if __name__ == '__main__':
     main()
