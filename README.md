@@ -1,7 +1,6 @@
-# arithmetic_interpreter
-****
+# arithmetic-interpreter
 A very basic interpreter for arithmetic expressions, written in Python as an educational project involving context-free grammars and recursive descent parsers.
-
+****
 ## Running
 
 ~~~ sh
